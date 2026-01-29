@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-// --- 1. REMOVED the logo import ---
-// import logo from '../assets/logo.png'; 
+import { motion } from 'framer-motion';
+import { Sparkles, Menu, X, LogOut } from 'lucide-react'; 
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -15,66 +15,109 @@ const Navbar = () => {
     closeMenu();
   };
 
-  const navLinkClasses = ({ isActive }) => isActive ? 'text-green-400 font-semibold' : 'text-gray-300 hover:text-green-400';
+  const navLinkClasses = ({ isActive }) => 
+    isActive 
+      ? 'text-white font-semibold relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-gradient-to-r after:from-[#7C3AED] after:to-[#A855F7]' 
+      : 'text-[#9CA3AF] hover:text-white transition-colors';
+  
   const toggleMenu = () => setOpen(prev => !prev);
   const closeMenu = () => setOpen(false);
 
   return (
-    <header className="bg-[#1f2937] text-white shadow-lg font-roboto">
-      <div className="container mx-auto flex items-center justify-between p-4">
-        
-        {/* --- 2. Replaced the <img> tag with a styled <div> for the text logo --- */}
-        <Link to="/" className="flex items-center">
-          <div className="text-2xl font-bold text-white tracking-wider">Planova AI</div>
+    <header className="bg-[#0B0F1A]/80 backdrop-blur-xl text-white shadow-lg border-b border-purple-500/10">
+      <div className="container mx-auto flex items-center justify-between p-4 px-6 lg:px-12">
+        <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 group">
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            className="w-10 h-10 bg-gradient-to-r from-[#7C3AED] to-[#A855F7] rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/30"
+          >
+            <Sparkles className="w-6 h-6 text-white" />
+          </motion.div>
+          <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            PlanovaAI
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex space-x-6 items-center">
+        <nav className="hidden md:flex space-x-8 items-center">
           {user && (
             <>
-              <NavLink to="/" className={navLinkClasses}>Dashboard</NavLink>
+              <NavLink to="/dashboard" className={navLinkClasses}>Dashboard</NavLink>
               <NavLink to="/strategies" className={navLinkClasses}>My Strategies</NavLink>
               <NavLink to="/idea-bank" className={navLinkClasses}>Idea Bank</NavLink>
               <NavLink to="/competitors" className={navLinkClasses}>Competitors</NavLink>
               <NavLink to="/analytics" className={navLinkClasses}>Analytics</NavLink>
-              <button onClick={handleLogout} className="text-gray-300 hover:text-red-400">Logout</button>
+              
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLogout} 
+                className="flex items-center gap-2 px-4 py-2 bg-[#111827] border border-purple-500/20 rounded-lg text-[#E5E7EB] hover:border-purple-500/40 hover:text-white transition-colors ml-4"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </motion.button>
             </>
           )}
           {!user && (
             <>
               <NavLink to="/login" className={navLinkClasses}>Login</NavLink>
-              <NavLink to="/signup" className="px-4 py-2 bg-green-500 rounded text-white font-semibold hover:bg-green-600">Sign Up</NavLink>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/signup')}
+                className="px-6 py-2.5 bg-gradient-to-r from-[#7C3AED] to-[#A855F7] rounded-lg font-semibold text-white shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-shadow"
+              >
+                Sign Up
+              </motion.button>
             </>
           )}
         </nav>
         
         {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center">
-          <button onClick={toggleMenu} aria-label="Toggle menu"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={open ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg></button>
-        </div>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={toggleMenu}
+          className="md:hidden p-2 text-[#E5E7EB] hover:text-white"
+          aria-label="Toggle menu"
+        >
+          {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </motion.button>
       </div>
 
       {/* Mobile Navigation Menu */}
       {open && (
-        <div className="md:hidden bg-gray-800 border-t border-gray-700">
-          <div className="flex flex-col p-4 space-y-2">
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="md:hidden bg-[#111827]/95 backdrop-blur-xl border-t border-purple-500/10"
+        >
+          <div className="flex flex-col p-6 space-y-4">
             {user ? (
               <>
-                <Link to="/" onClick={closeMenu} className="py-2 px-3 text-gray-300 hover:bg-gray-700 rounded">Dashboard</Link>
-                <Link to="/strategies" onClick={closeMenu} className="py-2 px-3 text-gray-300 hover:bg-gray-700 rounded">My Strategies</Link>
-                <Link to="/idea-bank" onClick={closeMenu} className="py-2 px-3 text-gray-300 hover:bg-gray-700 rounded">Idea Bank</Link>
-                <Link to="/competitors" onClick={closeMenu} className="py-2 px-3 text-gray-300 hover:bg-gray-700 rounded">Competitors</Link>
-                <Link to="/analytics" onClick={closeMenu} className="py-2 px-3 text-gray-300 hover:bg-gray-700 rounded">Analytics</Link>
-                <button onClick={handleLogout} className="py-2 px-3 text-left text-red-400 hover:bg-gray-700 rounded">Logout</button>
+                <Link to="/dashboard" onClick={closeMenu} className="py-2 px-3 text-[#9CA3AF] hover:text-white hover:bg-[#1F2937] rounded-lg transition-colors">Dashboard</Link>
+                <Link to="/strategies" onClick={closeMenu} className="py-2 px-3 text-[#9CA3AF] hover:text-white hover:bg-[#1F2937] rounded-lg transition-colors">My Strategies</Link>
+                <Link to="/idea-bank" onClick={closeMenu} className="py-2 px-3 text-[#9CA3AF] hover:text-white hover:bg-[#1F2937] rounded-lg transition-colors">Idea Bank</Link>
+                <Link to="/competitors" onClick={closeMenu} className="py-2 px-3 text-[#9CA3AF] hover:text-white hover:bg-[#1F2937] rounded-lg transition-colors">Competitors</Link>
+                <Link to="/analytics" onClick={closeMenu} className="py-2 px-3 text-[#9CA3AF] hover:text-white hover:bg-[#1F2937] rounded-lg transition-colors">Analytics</Link>
+                
+                <button 
+                  onClick={handleLogout} 
+                  className="py-3 px-3 text-left flex items-center gap-2 border border-purple-500/30 rounded-lg text-[#E5E7EB] hover:border-purple-500/50 hover:bg-[#1F2937] transition-colors mt-4"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
               </>
             ) : (
               <>
-                <Link to="/login" onClick={closeMenu} className="py-2 px-3 text-gray-300 hover:bg-gray-700 rounded">Login</Link>
-                <Link to="/signup" onClick={closeMenu} className="py-2 px-3 text-gray-300 hover:bg-gray-700 rounded">Sign Up</Link>
+                <Link to="/login" onClick={closeMenu} className="py-2 px-3 text-[#9CA3AF] hover:text-white hover:bg-[#1F2937] rounded-lg transition-colors">Login</Link>
+                <Link to="/signup" onClick={closeMenu} className="py-3 px-3 bg-gradient-to-r from-[#7C3AED] to-[#A855F7] rounded-lg font-semibold text-white text-center shadow-lg shadow-purple-500/30">Sign Up</Link>
               </>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
     </header>
   );

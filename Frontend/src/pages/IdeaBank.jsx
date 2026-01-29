@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Lightbulb, FileText, Youtube, Twitter, Video } from 'lucide-react';
 import api from '../api/axios';
+import Footer from '../components/Footer';
 
 const ideaTypes = [
   { name: 'Blog Titles', icon: <FileText className="w-6 h-6" /> },
@@ -122,6 +123,8 @@ const IdeaBank = () => {
           )}
         </div>
       </div>
+      
+      <Footer />
     </motion.div>
   );
 };

@@ -7,6 +7,7 @@ import Papa from 'papaparse';
 import ReactMarkdown from 'react-markdown';
 import EditContentModal from '../components/EditContentModal';
 import ExpandIdeaModal from '../components/ExpandIdeaModal';
+import Footer from '../components/Footer';
 
 // DND-Kit Imports
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -345,6 +346,8 @@ const CalendarPage = () => {
           </div>
         </div>
       </motion.div>
+      
+      <Footer />
     </>
   );
 };

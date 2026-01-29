@@ -4,7 +4,8 @@ import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement, ArcElement, Filler } from 'chart.js';
 import { TrendingUp, Users, MessageCircle, Target, Zap, BarChart3 } from 'lucide-react';
 import UserInputPanel from '../components/UserInputPanel';
-import DashboardSkeleton from '../components/DashboardSkeleton'; // <-- Import skeleton
+import DashboardSkeleton from '../components/DashboardSkeleton';
+import Footer from '../components/Footer';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement, ArcElement, Filler);
 
@@ -66,12 +67,12 @@ const Dashboard = ({ onStrategyGenerated }) => {
   ];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen bg-gray-900 text-white p-6">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen bg-[#0B0F1A] text-[#E5E7EB] p-6">
       <div className="max-w-7xl mx-auto">
-        {error && <div className="text-red-400 mb-4">Error: {error}</div>}
+        {error && <div className="bg-red-500/20 border border-red-500/30 text-red-300 p-4 rounded-lg mb-4">Error: {error}</div>}
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">AI Content Dashboard</h1>
-          <p className="text-gray-400 mt-2">Real-time insights and AI-powered recommendations</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">AI Content Dashboard</h1>
+          <p className="text-[#9CA3AF] mt-2">Real-time insights and AI-powered recommendations</p>
         </motion.div>
 
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-8">
@@ -80,35 +81,37 @@ const Dashboard = ({ onStrategyGenerated }) => {
 
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {kpiCards.map((card, index) => (
-            <motion.div key={index} whileHover={{ scale: 1.05 }} className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-6 shadow-xl border border-gray-700">
+            <motion.div key={index} whileHover={{ scale: 1.05, y: -6 }} className="bg-[#111827] rounded-2xl p-6 shadow-xl border border-purple-500/20 hover:border-purple-500/40 hover:shadow-purple-500/10 transition-all">
               <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl bg-gradient-to-r ${card.color}`}><card.icon className="w-6 h-6 text-white" /></div>
+                <div className={`p-3 rounded-xl bg-gradient-to-r ${card.color} shadow-lg`}><card.icon className="w-6 h-6 text-white" /></div>
               </div>
-              <h3 className="text-gray-400 text-sm mb-1">{card.title}</h3>
-              <p className="text-2xl font-bold">{card.value}</p>
+              <h3 className="text-[#9CA3AF] text-sm mb-1">{card.title}</h3>
+              <p className="text-2xl font-bold text-[#E5E7EB]">{card.value}</p>
             </motion.div>
           ))}
         </motion.div>
 
-        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-6 shadow-xl border border-gray-700 mb-8">
-          <div className="flex items-center mb-6"><BarChart3 className="w-6 h-6 text-blue-400 mr-3" /><h2 className="text-xl font-bold">Performance Trends</h2></div>
-          <div className="h-80"><Line data={performanceData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af' } } }, scales: { x: { grid: { color: '#374151' }, ticks: { color: '#9ca3af' } }, y: { grid: { color: '#374151' }, ticks: { color: '#9ca3af' } } } }} /></div>
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-[#111827] rounded-2xl p-6 shadow-xl border border-purple-500/20 mb-8">
+          <div className="flex items-center mb-6"><BarChart3 className="w-6 h-6 text-purple-400 mr-3" /><h2 className="text-xl font-bold text-[#E5E7EB]">Performance Trends</h2></div>
+          <div className="h-80"><Line data={performanceData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af' } } }, scales: { x: { grid: { color: '#1F2937' }, ticks: { color: '#9ca3af' } }, y: { grid: { color: '#1F2937' }, ticks: { color: '#9ca3af' } } } }} /></div>
         </motion.div>
 
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {aiRecommendations.map((rec, index) => (
-            <motion.div key={index} whileHover={{ scale: 1.02 }} className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-6 shadow-xl border border-gray-700 hover:border-purple-500">
+            <motion.div key={index} whileHover={{ scale: 1.02, y: -6 }} className="bg-[#111827] rounded-2xl p-6 shadow-xl border border-purple-500/20 hover:border-purple-500/40 hover:shadow-purple-500/10 transition-all">
               <div className="flex items-center mb-4">
                 <Zap className="w-5 h-5 text-purple-400 mr-2" />
                 <span className="text-sm text-purple-400 font-semibold">{rec.type}</span>
-                <span className={`ml-auto px-2 py-1 rounded-full text-xs font-bold ${rec.impact === 'High' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{rec.impact} Impact</span>
+                <span className={`ml-auto px-2 py-1 rounded-full text-xs font-bold ${rec.impact === 'High' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'}`}>{rec.impact} Impact</span>
               </div>
-              <h3 className="text-lg font-bold mb-2">{rec.title}</h3>
-              <p className="text-gray-400 text-sm">{rec.description}</p>
+              <h3 className="text-lg font-bold mb-2 text-[#E5E7EB]">{rec.title}</h3>
+              <p className="text-[#9CA3AF] text-sm">{rec.description}</p>
             </motion.div>
           ))}
         </motion.div>
       </div>
+      
+      <Footer />
     </motion.div>
   );
 };

@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { BrainCircuit, Calendar, Target, Clock, Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast'; // <-- Import toast
-import StrategiesSkeleton from '../components/StrategiesSkeleton'; // <-- Import skeleton
+import toast from 'react-hot-toast';
+import StrategiesSkeleton from '../components/StrategiesSkeleton';
+import Footer from '../components/Footer';
 
 const Strategies = () => {
   const [strategies, setStrategies] = useState([]);
@@ -62,7 +63,7 @@ return (
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gray-900 text-white p-6"
+      className="min-h-screen bg-[#0B0F1A] text-[#E5E7EB] p-6"
     >
       <div className="max-w-7xl mx-auto">
         <motion.div
@@ -71,20 +72,20 @@ return (
           transition={{ delay: 0.1 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
             My Saved Strategies
           </h1>
-          <p className="text-gray-400 mt-2">Review and access your previously generated content plans.</p>
+          <p className="text-[#9CA3AF] mt-2">Review and access your previously generated content plans.</p>
         </motion.div>
 
-        {loading && <div className="text-center text-gray-400">Loading your strategies...</div>}
+        {loading && <div className="text-center text-[#9CA3AF]">Loading your strategies...</div>}
         
         {/* Display a single, prominent error message at the top */}
-        {error && <div className="text-center text-red-400 p-4 mb-4 bg-red-900/50 rounded-lg">{error}</div>}
+        {error && <div className="text-center text-red-300 p-4 mb-4 bg-red-500/20 border border-red-500/30 rounded-lg">{error}</div>}
         
         {!loading && strategies.length === 0 && (
-          <div className="text-center text-gray-400 p-8 bg-gray-800 rounded-lg">
-            <h2 className="text-xl font-bold mb-2">No Strategies Found</h2>
+          <div className="text-center text-[#9CA3AF] p-8 bg-[#111827] border border-purple-500/20 rounded-lg">
+            <h2 className="text-xl font-bold mb-2 text-[#E5E7EB]">No Strategies Found</h2>
             <p>Go to the Dashboard to generate your first AI content strategy!</p>
           </div>
         )}
@@ -97,9 +98,9 @@ return (
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                whileHover={{ scale: 1.03, borderColor: '#a855f7' }}
+                whileHover={{ scale: 1.03, y: -6 }}
                 // --- Add 'relative' positioning to the card to contain the delete button ---
-                className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 shadow-lg border border-gray-700 cursor-pointer"
+                className="relative bg-[#111827] rounded-2xl p-6 shadow-xl border border-purple-500/20 hover:border-purple-500/40 hover:shadow-purple-500/10 cursor-pointer transition-all"
               >
                 {/* --- NEW: Delete Button --- */}
                 <button
@@ -107,7 +108,7 @@ return (
                     e.stopPropagation(); // Prevents the card's click handler from firing
                     handleDeleteStrategy(strategy._id);
                   }}
-                  className="absolute top-3 right-3 p-2 text-gray-500 hover:text-red-500 hover:bg-gray-700 rounded-full transition-colors"
+                  className="absolute top-3 right-3 p-2 text-[#9CA3AF] hover:text-red-400 hover:bg-[#1F2937] rounded-full transition-colors"
                   aria-label="Delete strategy"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -116,28 +117,28 @@ return (
                 {/* Main card content is now wrapped in a div to allow clicking */}
                 <div onClick={() => handleCardClick(strategy._id)}>
                   <div className="flex items-center mb-4 pr-8"> {/* Add padding-right to avoid overlap with delete button */}
-                    <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 mr-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 shadow-lg mr-4">
                       <BrainCircuit className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h2 className="font-bold text-lg text-white capitalize">{strategy.topic}</h2>
-                      <p className="text-xs text-gray-400">Strategy</p>
+                      <h2 className="font-bold text-lg text-[#E5E7EB] capitalize">{strategy.topic}</h2>
+                      <p className="text-xs text-[#9CA3AF]">Strategy</p>
                     </div>
                   </div>
 
                   <div className="space-y-3 text-sm">
-                    <div className="flex items-center text-gray-300">
+                    <div className="flex items-center text-[#E5E7EB]">
                       <Target className="w-4 h-4 mr-2 text-purple-400" />
                       <span><strong>Goal:</strong> {strategy.goals}</span>
                     </div>
-                    <div className="flex items-center text-gray-300">
+                    <div className="flex items-center text-[#E5E7EB]">
                       <Clock className="w-4 h-4 mr-2 text-purple-400" />
                        <span><strong>Created:</strong> {new Date(strategy.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
 
                   <div className="mt-6 text-center">
-                      <span className="flex items-center justify-center w-full px-4 py-2 bg-gray-700 rounded-lg font-semibold hover:bg-purple-600 transition-colors">
+                      <span className="flex items-center justify-center w-full px-4 py-2 bg-[#1F2937] rounded-lg font-semibold hover:bg-gradient-to-r hover:from-[#7C3AED] hover:to-[#A855F7] transition-all">
                           <Calendar className="w-4 h-4 mr-2"/>
                           View Content Plan
                       </span>
@@ -149,6 +150,8 @@ return (
           </div>
         )}
       </div>
+      
+      <Footer />
     </motion.div>
   );
 };
