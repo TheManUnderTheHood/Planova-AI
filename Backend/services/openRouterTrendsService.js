@@ -1,24 +1,17 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 const cache = require('./cacheService');
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const { generateJson } = require('./openRouterService');
 
-const getGeminiGeneratedTrends = async (topic) => {
+const getOpenRouterGeneratedTrends = async (topic) => {
   if (!topic) return [];
-  
-  const cacheKey = `gemini_trends_${topic.toLowerCase()}`;
+
+  const cacheKey = `openrouter_trends_${topic.toLowerCase()}`;
   const cachedData = cache.get(cacheKey);
   if (cachedData) {
-    console.log(`Serving Gemini trends for "${topic}" from cache.`);
+    console.log(`Serving OpenRouter trends for "${topic}" from cache.`);
     return cachedData;
   }
 
-  console.log(`Fetching new Gemini trends for "${topic}" from API.`);
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
-    generationConfig: {
-      responseMimeType: 'application/json',
-    },
-  });
+  console.log(`Fetching new OpenRouter trends for "${topic}" from API.`);
 
   const prompt = `
     You are an expert trend analysis AI. Your task is to generate a list of plausible trending search queries related to a given topic.
@@ -30,20 +23,18 @@ const getGeminiGeneratedTrends = async (topic) => {
     Example for topic "coffee":
     {
       "trends": [
-        "best coffee beans", "how to make cold brew", "espresso machine reviews", "dalgana coffee recipe", 
-        "mushroom coffee benefits", "local coffee shops near me", "fair trade coffee brands", 
+        "best coffee beans", "how to make cold brew", "espresso machine reviews", "dalgana coffee recipe",
+        "mushroom coffee benefits", "local coffee shops near me", "fair trade coffee brands",
         "coffee subscription box", "is coffee good for you", "proffee trend"
       ]
     }
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const generatedJson = JSON.parse(response.text());
+    const generatedJson = await generateJson(prompt);
 
     const trends = (generatedJson.trends || []).map(keyword => ({
-      keyword: keyword,
+      keyword,
       // Create a Google search URL as the link for these simulated trends
       link: `https://www.google.com/search?q=${encodeURIComponent(keyword)}`,
       platform: 'Google Trends (AI)',
@@ -52,11 +43,10 @@ const getGeminiGeneratedTrends = async (topic) => {
 
     cache.set(cacheKey, trends);
     return trends;
-
   } catch (error) {
-    console.error('Error generating trends with Gemini:', error);
+    console.error('Error generating trends with OpenRouter:', error.message);
     return [];
   }
 };
 
-module.exports = { getGeminiGeneratedTrends };
+module.exports = { getOpenRouterGeneratedTrends };

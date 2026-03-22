@@ -1,6 +1,6 @@
 # Planova AI - AI-Powered Content Strategy Engine
 
-**Planova AI** is a full-stack MERN application designed to be a comprehensive content strategy generator. It empowers users to create detailed, data-driven content plans by analyzing real-time trends, tracking competitors, and leveraging the power of Google's Gemini AI.
+**Planova AI** is a full-stack MERN application designed to be a comprehensive content strategy generator. It empowers users to create detailed, data-driven content plans by analyzing real-time trends, tracking competitors, and leveraging the power of OpenRouter models.
 
 This tool moves beyond simple content generation by building a complete strategic blueprint, from understanding the target audience with AI-generated personas to laying out a day-by-day content calendar.
 
@@ -20,7 +20,7 @@ This tool moves beyond simple content generation by building a complete strategi
 | :----------- | :---------------------------------------------------------------------------------------------------------- |
 | **Frontend** | React, React Router, Tailwind CSS, Axios, Chart.js, Framer Motion                                           |
 | **Backend**  | Node.js, Express.js, MongoDB, Mongoose, JWT                                                                 |
-| **APIs**     | **Google Gemini API**, YouTube Data API v3, Twitter API v2, Reddit RSS                                      |
+| **APIs**     | **OpenRouter API (Claude Opus 4.6)**, YouTube Data API v3, Twitter API v2, Reddit RSS                      |
 
 ## ⚙️ Setup and Installation
 
@@ -60,11 +60,12 @@ Open the `.env` file and add the following variables:
 # Get this from your MongoDB Atlas cluster by clicking "Connect" > "Shell"
 MONGO_URI=mongodb+srv://<username>:<password>@yourcluster.mongodb.net/yourDatabaseName
 
-# Google Gemini API Key
-# 1. Go to https://ai.google.dev/
-# 2. Click "Get API key in Google AI Studio"
-# 3. Create a new API key and copy it here.
-GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+# OpenRouter API Key
+# 1. Go to https://openrouter.ai/
+# 2. Create an account and generate an API key from the Keys page.
+# 3. Use Claude Opus 4.6 (or another OpenRouter model) below.
+OPENROUTER_API_KEY=YOUR_OPENROUTER_API_KEY
+OPENROUTER_MODEL=anthropic/claude-opus-4.6
 
 # YouTube Data API Key
 # 1. Go to the Google Cloud Console: https://console.cloud.google.com/

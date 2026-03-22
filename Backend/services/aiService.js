@@ -1,6 +1,4 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const { generateText, generateJson } = require('./openRouterService');
 
 /**
  * --- NEW: Generates a detailed audience persona from keywords ---
@@ -11,7 +9,6 @@ const generateAudiencePersona = async (audienceKeywords) => {
   if (!audienceKeywords) {
     return "No audience specified.";
   }
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const prompt = `
     You are an expert marketing strategist. Based on the following user-provided description of a target audience, generate a detailed and actionable user persona.
@@ -29,11 +26,9 @@ const generateAudiencePersona = async (audienceKeywords) => {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    return response.text();
+    return await generateText(prompt);
   } catch (error) {
-    console.error('Error generating audience persona with Gemini:', error);
+    console.error('Error generating audience persona with OpenRouter:', error.message);
     // Fallback to the original keywords if AI fails
     return `**Audience:** ${audienceKeywords}\n\n*AI persona generation failed. Using the provided description directly.*`;
   }
@@ -49,20 +44,18 @@ const analyzeCompetitorTopics = async (postTitles) => {
   if (!postTitles || postTitles.length === 0) {
     return { themes: [], summary: 'Not enough data to analyze.' };
   }
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: 'application/json' } });
   const prompt = `You are an expert YouTube content analyst. Based on the following list of recent video titles from a single channel, please perform an analysis. Video Titles:\n- ${postTitles.join('\n- ')}\n\nYour Tasks:\n1. Identify the top 3 to 5 recurring content pillars or themes.\n2. Provide a concise, one-sentence summary of this channel's overall content strategy.\n\nThe output MUST be a valid JSON object with the exact structure below. Do not add any other text.\n{\n  "themes": ["Theme 1", "Theme 2", "Theme 3"],\n  "summary": "This channel focuses on..."\n}`;
   try {
-    const result = await model.generateContent(prompt);
-    return JSON.parse(result.response.text());
+    return await generateJson(prompt);
   } catch (error) {
-    console.error('Error analyzing competitor topics with Gemini:', error);
+    console.error('Error analyzing competitor topics with OpenRouter:', error.message);
     return { themes: [], summary: 'AI analysis failed.' };
   }
 };
 
 
 /**
- * Generates a content strategy using Google's Gemini model.
+ * Generates a content strategy using OpenRouter.
  * @param {string} audiencePersona - The AI-generated detailed target audience persona.
  * @param {string} topic - The primary topic or industry.
  * @param {string} goals - The main objectives.
@@ -72,8 +65,6 @@ const analyzeCompetitorTopics = async (postTitles) => {
  * @returns {Promise<object>} - The AI-generated strategy plan.
  */
 const generateContentStrategy = async (audiencePersona, topic, goals, trendingKeywords = [], startDate = null, endDate = null) => {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: 'application/json' } });
-
   let durationPromptSection = 'Generate a complete 30-day content strategy plan.';
   let planDuration = 30;
 
@@ -134,10 +125,9 @@ const generateContentStrategy = async (audiencePersona, topic, goals, trendingKe
     `;
 
   try {
-    const result = await model.generateContent(prompt);
-    return JSON.parse(result.response.text());
+    return await generateJson(prompt, { maxTokens: 6000 });
   } catch (error) {
-    console.error('Error communicating with Google Gemini API:', error);
+    console.error('Error communicating with OpenRouter API:', error.message);
     throw new Error('Failed to generate AI content strategy.');
   }
 };
@@ -145,15 +135,13 @@ const generateContentStrategy = async (audiencePersona, topic, goals, trendingKe
 
 const analyzeTrendSentiment = async (trends) => {
   if (!trends || trends.length === 0) return trends;
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: 'application/json' } });
   const keywords = trends.map((trend, index) => `${index}: "${trend.keyword}"`);
   const prompt = `You are a sentiment analysis expert. For the following list of keywords and topics, classify each one as 'Positive', 'Negative', or 'Neutral'.\nYour response MUST be a valid JSON object where keys are the numeric indices from the input list and values are the sentiment strings.\n\nKeywords to analyze:\n${keywords.join('\n')}\n\nExample Response:\n{\n  "0": "Neutral",\n  "1": "Positive",\n  "2": "Negative"\n}`;
   try {
-    const result = await model.generateContent(prompt);
-    const sentimentMap = JSON.parse(result.response.text());
+    const sentimentMap = await generateJson(prompt);
     return trends.map((trend, index) => ({ ...trend, sentiment: sentimentMap[index] || 'Neutral' }));
   } catch (error) {
-    console.error('Error analyzing trend sentiment with Gemini:', error);
+    console.error('Error analyzing trend sentiment with OpenRouter:', error.message);
     return trends.map(trend => ({ ...trend, sentiment: 'Neutral' }));
   }
 };
@@ -167,8 +155,6 @@ const analyzeTrendSentiment = async (trends) => {
  * @returns {Promise<string[]>} - An array of generated ideas.
  */
 const generateContentIdeas = async (topic, type) => {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: 'application/json' } });
-  
   const promptMap = {
     'Blog Titles': `Generate 5 catchy, SEO-friendly blog post titles about "${topic}".`,
     'YouTube Ideas': `Generate 5 engaging YouTube video ideas for a channel focused on "${topic}". Include a mix of tutorial, listicle, and review-style videos.`,
@@ -199,9 +185,7 @@ const generateContentIdeas = async (topic, type) => {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const generatedJson = JSON.parse(response.text());
+    const generatedJson = await generateJson(prompt);
     return generatedJson.ideas || [];
   } catch (error) {
     console.error(`Error generating content ideas for type ${type}:`, error);
@@ -213,7 +197,6 @@ const findContentGaps = async (competitorThemes, userTopics) => {
   if (!competitorThemes || competitorThemes.length === 0) {
     return [];
   }
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: 'application/json' } });
   
   const userTopicsPrompt = userTopics.length > 0
     ? `The user already covers topics like: ${userTopics.join(', ')}.`
@@ -238,12 +221,10 @@ const findContentGaps = async (competitorThemes, userTopics) => {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const generatedJson = JSON.parse(response.text());
+    const generatedJson = await generateJson(prompt);
     return generatedJson.gaps || [];
   } catch (error) {
-    console.error('Error finding content gaps with Gemini:', error);
+    console.error('Error finding content gaps with OpenRouter:', error.message);
     return ["AI analysis for content gaps failed."];
   }
 };
@@ -256,8 +237,6 @@ const findContentGaps = async (competitorThemes, userTopics) => {
  * @returns {Promise<string>} - A markdown-formatted string with the expanded content.
  */
 const generateExpandedContent = async (title, format) => {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
   let promptInstruction = '';
   if (format.toLowerCase().includes('blog')) {
     promptInstruction = `Generate a 5-point blog post outline for the title "${title}". Include a brief introduction, 5 main heading points with a one-sentence description for each, and a conclusion.`;
@@ -276,11 +255,9 @@ const generateExpandedContent = async (title, format) => {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    return response.text();
+    return await generateText(prompt);
   } catch (error) {
-    console.error('Error expanding content idea with Gemini:', error);
+    console.error('Error expanding content idea with OpenRouter:', error.message);
     return "Failed to expand the idea. Please try again.";
   }
 };

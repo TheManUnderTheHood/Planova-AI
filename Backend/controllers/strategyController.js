@@ -8,7 +8,7 @@ const ContentStrategy = require('../models/ContentStrategy');
 const { searchYouTubeByTopic } = require('../services/youtubeService');
 const { searchRedditByTopic } = require('../services/redditService');
 const { searchTwitterByTopic } = require('../services/twitterService');
-const { getGeminiGeneratedTrends } = require('../services/geminiTrendsService');
+const { getOpenRouterGeneratedTrends } = require('../services/openRouterTrendsService');
 
 const generateIdeas = async (req, res) => {
   const { topic, type } = req.body;
@@ -41,7 +41,7 @@ const generateStrategy = async (req, res) => {
       searchYouTubeByTopic(topic),
       searchRedditByTopic(topic),
       searchTwitterByTopic(topic),
-      getGeminiGeneratedTrends(topic),
+      getOpenRouterGeneratedTrends(topic),
     ]);
     
     const trendingKeywords = trendSources.flat().map(trend => trend.keyword).slice(0, 10);
