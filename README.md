@@ -1,18 +1,23 @@
 # Planova AI - AI-Powered Content Strategy Engine
 
-**Planova AI** is a full-stack MERN application designed to be a comprehensive content strategy generator. It empowers users to create detailed, data-driven content plans by analyzing real-time trends, tracking competitors, and leveraging the power of OpenRouter models.
+**Planova AI** is a full-stack MERN application that turns creator goals into data-informed content strategies. It gathers trend and competitor signals from multiple sources, enriches them with AI analysis, and produces an actionable content calendar.
 
 This tool moves beyond simple content generation by building a complete strategic blueprint, from understanding the target audience with AI-generated personas to laying out a day-by-day content calendar.
 
 ## ✨ Core Features
 
-*   **🤖 AI Strategy Generation**: Input your target audience, topic, and goals to generate a complete content calendar, including post titles, formats, platforms, and optimal timing.
-*   **📈 Multi-Source Trend Analysis**: Aggregates and analyzes trending topics from YouTube, Twitter, Reddit, and an AI-powered simulation of Google Trends to ensure content is timely and relevant.
-*   **🕵️ Competitor Tracking**: Add competitors from YouTube, Twitter, or Blogs (via RSS) to fetch their latest content and receive an AI-powered analysis of their core themes and strategy.
-*   **👤 AI Persona Generation**: Automatically creates a detailed audience persona from simple keywords, providing deep insights into your target user's goals and pain points.
-*   **🗓️ Interactive Content Calendar**: View your generated strategy on a dynamic calendar. Edit content ideas, track the status of each post ('To Do', 'In Progress', 'Completed'), and see the AI's rationale for each suggestion.
-*   **🔐 User Authentication**: Secure user accounts with JWT authentication ensures that all strategies and competitor lists are private and accessible only to the logged-in user.
-*   **💡 Content Idea Bank**: A dedicated space to quickly brainstorm different types of content (blog titles, tweet hooks, video ideas) without generating a full strategy.
+*   **🤖 AI Strategy Generation**: Enter an audience, topic, goal, and optional date range to generate a 30-day plan by default, or a customized plan of up to 90 days.
+*   **📊 Evidence-Informed Planning**: Collects source data before generation, extracts trend keywords, and passes the relevant evidence to the LLM along with the creator's requirements.
+*   **📈 Multi-Source Trend Analysis**: Aggregates YouTube, Twitter/X through GetXAPI, Reddit RSS, and AI-generated search-trend ideas, then adds AI sentiment labels.
+*   **🕵️ Competitor Tracking**: Track YouTube channels, Twitter/X accounts, or RSS-enabled blogs. Recent posts are cached and analyzed for recurring themes and strategy.
+*   **👤 AI Persona Generation**: Creates a concise audience persona covering demographics, motivations, pain points, and content preferences.
+*   **🗓️ Interactive Content Calendar**: View the generated plan by month, edit titles and publishing details, change status, drag content between days, undo moves, and view AI rationales.
+*   **🔎 Content Gap Analysis**: Compares competitor themes with the user's saved strategy topics to identify content opportunities.
+*   **💡 Content Idea Bank**: Generate blog titles, YouTube ideas, tweet hooks, and short-form video scripts without creating a full strategy.
+*   **📋 Saved Strategies**: Review, open, and delete previously generated strategies.
+*   **🔐 User Authentication**: JWT-based registration and login protect user strategies and competitor data with ownership checks.
+*   **⚡ Caching and Quota Reduction**: Uses Redis when configured, with an automatic in-memory fallback. External trend and competitor responses use a six-hour default cache.
+*   **🛡️ API Protection**: Includes authenticated AI/data routes, request-size limits, input validation, endpoint rate limiting, SSRF protection for RSS URLs, structured errors, and a health endpoint.
 
 ## 🛠️ Technology Stack
 
@@ -20,7 +25,8 @@ This tool moves beyond simple content generation by building a complete strategi
 | :----------- | :---------------------------------------------------------------------------------------------------------- |
 | **Frontend** | React, React Router, Tailwind CSS, Axios, Chart.js, Framer Motion                                           |
 | **Backend**  | Node.js, Express.js, MongoDB, Mongoose, JWT                                                                 |
-| **APIs**     | **OpenRouter API (Claude Opus 4.6)**, YouTube Data API v3, Twitter API v2, Reddit RSS                      |
+| **APIs**     | **OpenRouter API (Claude Sonnet 4.5)**, YouTube Data API v3, GetXAPI for Twitter/X, Reddit RSS             |
+| **Caching**  | Redis Cloud or Redis-compatible server, with `node-cache` fallback                                        |
 
 ## ⚙️ Setup and Installation
 
@@ -30,7 +36,8 @@ To run this project locally, you will need to set up both the backend and fronte
 
 *   Node.js (v18.x or higher recommended)
 *   npm
-*   MongoDB Atlas Account (for the database)
+*   MongoDB Atlas Account or another MongoDB deployment
+*   Optional Redis Cloud account or Redis-compatible server
 
 ### 1. Backend Setup
 
@@ -63,9 +70,9 @@ MONGO_URI=mongodb+srv://<username>:<password>@yourcluster.mongodb.net/yourDataba
 # OpenRouter API Key
 # 1. Go to https://openrouter.ai/
 # 2. Create an account and generate an API key from the Keys page.
-# 3. Use Claude Opus 4.6 (or another OpenRouter model) below.
+# 3. Claude Sonnet 4.5 is the default model below.
 OPENROUTER_API_KEY=YOUR_OPENROUTER_API_KEY
-OPENROUTER_MODEL=anthropic/claude-opus-4.6
+OPENROUTER_MODEL=anthropic/claude-sonnet-4.5
 
 # YouTube Data API Key
 # 1. Go to the Google Cloud Console: https://console.cloud.google.com/
@@ -85,6 +92,7 @@ JWT_SECRET=your_super_secret_random_string_for_jwt
 PORT=5000
 
 # Redis connection URL (Optional; falls back to in-memory caching when absent)
+# Redis Cloud commonly provides a rediss:// URL.
 REDIS_URL=redis://localhost:6379
 ```
 
@@ -98,6 +106,8 @@ npm start
 ```
 
 The server should now be running on `http://localhost:5000`.
+
+Check backend readiness at `http://localhost:5000/health`. The response reports MongoDB status and whether Redis is connected or the local cache fallback is active.
 
 ### 2. Frontend Setup
 
@@ -137,8 +147,43 @@ Your browser should automatically open to `http://localhost:5173`, and the appli
 
 ## 📝 API Endpoints
 
+All strategy, competitor, trend, and AI endpoints require a JWT bearer token.
+
+*   **Health**: `GET /`, `GET /health`
 *   **Auth**: `POST /api/auth/register`, `POST /api/auth/login`
-*   **Strategies**: `GET /api/strategy`, `POST /api/strategy/generate`, `GET /api/strategy/:id`, `DELETE /api/strategy/:id`
-*   **Competitors**: `GET /api/competitors`, `POST /api/competitors`
-*   **Trends**: `GET /api/trends`
-*   **Idea Bank**: `POST /api/strategy/generate-ideas`
+*   **Strategies**: `GET /api/strategy`, `POST /api/strategy/generate`, `POST /api/strategy/generate-persona`, `GET /api/strategy/:id`, `DELETE /api/strategy/:id`
+*   **Calendar**: `PUT /api/strategy/:strategyId/calendar/:day`
+*   **Idea Bank**: `POST /api/strategy/generate-ideas`, `POST /api/strategy/expand-idea`
+*   **Competitors**: `GET /api/competitors`, `POST /api/competitors`, `GET /api/competitors/:id/analyze-gaps`
+*   **Trends**: `GET /api/trends?topic=<topic>`
+
+### Generation Flow
+
+```text
+Creator input
+	-> audience persona generation
+	-> YouTube, GetXAPI, Reddit, and OpenRouter trend collection
+	-> cached and normalized source data
+	-> trend keywords passed to OpenRouter
+	-> validated strategy and calendar saved to MongoDB
+```
+
+### Validation and Operations
+
+Backend source validation:
+
+```bash
+cd Backend
+npm run check
+npm audit --omit=dev
+```
+
+Frontend validation and production build:
+
+```bash
+cd Frontend
+npm run lint
+npm run build
+```
+
+Redis is optional. If `REDIS_URL` is not configured or Redis is unavailable, the backend uses local memory caching and local rate-limit counters. For a multi-instance deployment, configure Redis so cache and rate limits are shared across instances.

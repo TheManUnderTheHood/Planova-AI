@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = process.env.OPENROUTER_MODEL || 'anthropic/claude-opus-4.6';
+const DEFAULT_MODEL = process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4.5';
 
 const stripCodeFences = (text) => {
   if (!text) return text;
