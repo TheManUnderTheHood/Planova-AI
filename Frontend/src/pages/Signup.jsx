@@ -125,7 +125,7 @@ const Signup = () => {
           </motion.button>
         </form>
         <div className="my-5 flex items-center gap-3 text-xs text-[#6B7280]"><span className="h-px flex-1 bg-[#374151]" />OR<span className="h-px flex-1 bg-[#374151]" /></div>
-        {import.meta.env.VITE_GOOGLE_CLIENT_ID ? <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError('Google sign-in failed.')} width="100%" /> : <p className="text-center text-xs text-[#6B7280]">Google sign-in is not configured.</p>}
+        {import.meta.env.VITE_GOOGLE_CLIENT_ID ? <div className="flex justify-center"><GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError('Google sign-in failed.')} width={320} /></div> : <p className="text-center text-xs text-[#6B7280]">Google sign-in is not configured.</p>}
         <p className="text-center text-[#9CA3AF] mt-6">
           Already have an account?{' '}
           <Link to="/login" className="text-purple-400 hover:text-purple-300 font-semibold transition-colors">Log In</Link>
