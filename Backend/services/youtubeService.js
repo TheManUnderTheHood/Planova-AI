@@ -10,7 +10,7 @@ const cache = require('./cacheService');
 const searchYouTubeByTopic = async (topic) => {
   // Caching Logic
   const cacheKey = `youtube_trends_${topic.toLowerCase()}`;
-  const cachedData = cache.get(cacheKey);
+  const cachedData = await cache.get(cacheKey);
   if (cachedData) {
     console.log(`Serving YouTube trends for "${topic}" from cache.`);
     return cachedData;
@@ -37,7 +37,7 @@ const searchYouTubeByTopic = async (topic) => {
       industry: topic,
     }));
     
-    cache.set(cacheKey, trends);
+    await cache.set(cacheKey, trends);
     return trends;
   } catch (error) {
     console.error('Error fetching YouTube search results:', error.response ? error.response.data.error : error.message);

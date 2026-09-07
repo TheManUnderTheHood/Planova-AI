@@ -5,7 +5,7 @@ const getOpenRouterGeneratedTrends = async (topic) => {
   if (!topic) return [];
 
   const cacheKey = `openrouter_trends_${topic.toLowerCase()}`;
-  const cachedData = cache.get(cacheKey);
+  const cachedData = await cache.get(cacheKey);
   if (cachedData) {
     console.log(`Serving OpenRouter trends for "${topic}" from cache.`);
     return cachedData;
@@ -41,7 +41,7 @@ const getOpenRouterGeneratedTrends = async (topic) => {
       industry: topic,
     }));
 
-    cache.set(cacheKey, trends);
+    await cache.set(cacheKey, trends);
     return trends;
   } catch (error) {
     console.error('Error generating trends with OpenRouter:', error.message);

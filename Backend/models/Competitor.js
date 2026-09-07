@@ -28,17 +28,14 @@ const CompetitorSchema = new mongoose.Schema({
   youtubeChannelId: {
     type: String,
     sparse: true, // Allows multiple nulls, but unique if present
-    unique: true,
   },
   twitterHandle: {
     type: String,
     sparse: true,
-    unique: true,
   },
   blogRssUrl: {
     type: String,
     sparse: true,
-    unique: true,
   },
   lastFetched: {
     type: Date,
@@ -55,5 +52,9 @@ const CompetitorSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+CompetitorSchema.index({ user: 1, youtubeChannelId: 1 }, { unique: true, sparse: true });
+CompetitorSchema.index({ user: 1, twitterHandle: 1 }, { unique: true, sparse: true });
+CompetitorSchema.index({ user: 1, blogRssUrl: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Competitor', CompetitorSchema);

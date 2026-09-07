@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement, ArcElement, Filler } from 'chart.js';
-import { TrendingUp, Users, MessageCircle, Target, Zap, BarChart3 } from 'lucide-react';
+import { TrendingUp, Users, MessageCircle, Target, BarChart3 } from 'lucide-react';
 import UserInputPanel from '../components/UserInputPanel';
 import DashboardSkeleton from '../components/DashboardSkeleton';
 import Footer from '../components/Footer';
@@ -21,12 +21,20 @@ const Dashboard = ({ onStrategyGenerated }) => {
         setLoading(true);
         const api = (await import('../api/axios')).default;
         // Fetching a smaller, more relevant set of data for the dashboard
-        const [compRes, trendsRes] = await Promise.all([
+        const [compResult, trendsResult] = await Promise.allSettled([
           api.get('/api/competitors'),
           api.get('/api/trends', { params: { topic: 'AI' } }), // Example topic
         ]);
-        setCompetitors(compRes.data.data || []);
-        setTrends(trendsRes.data.data || []);
+        if (compResult.status === 'fulfilled') {
+          setCompetitors(compResult.value.data.data || []);
+        } else {
+          setError(compResult.reason?.normalizedMessage || 'Failed to load competitor data');
+        }
+        if (trendsResult.status === 'fulfilled') {
+          setTrends(trendsResult.value.data.data || []);
+        } else {
+          setError(previousError => previousError || trendsResult.reason?.normalizedMessage || 'Failed to load trend data');
+        }
       } catch (err) {
         console.error('Dashboard fetch error', err);
         setError(err?.normalizedMessage || 'Failed to load dashboard data');
@@ -54,17 +62,22 @@ const Dashboard = ({ onStrategyGenerated }) => {
     { title: 'Avg Posts / Competitor', value: totalCompetitors > 0 ? `${Math.round(totalPosts / totalCompetitors)}` : '0', icon: Target, color: 'from-orange-500 to-orange-600' },
   ];
 
-  // (This logic can be simplified or improved, but it's for demonstration)
+  const now = new Date();
+  const weekMilliseconds = 7 * 24 * 60 * 60 * 1000;
+  const weeklyPostCounts = [0, 0, 0, 0];
+  competitors.forEach(competitor => {
+    (competitor.recentPosts || []).forEach(post => {
+      const publishedAt = new Date(post.publishedAt);
+      const weeksAgo = Math.floor((now - publishedAt) / weekMilliseconds);
+      if (weeksAgo >= 0 && weeksAgo < weeklyPostCounts.length) {
+        weeklyPostCounts[weeklyPostCounts.length - 1 - weeksAgo] += 1;
+      }
+    });
+  });
   const performanceData = {
-    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-    datasets: [{ label: 'Posts (all competitors)', data: [12, 19, 3, 5], borderColor: '#3b82f6', tension: 0.4 }, { label: 'Trends Discovered', data: [8, 15, 7, 9], borderColor: '#10b981', tension: 0.4 }]
+    labels: weeklyPostCounts.map((_, index) => `Week ${index + 1}`),
+    datasets: [{ label: 'Posts from tracked competitors', data: weeklyPostCounts, borderColor: '#3b82f6', tension: 0.4 }]
   };
-
-  const aiRecommendations = [
-    { type: 'Content Strategy', title: 'Short-Form Video Series', impact: 'High', description: 'Create a 7-part series on AI automation tips.' },
-    { type: 'Posting Time', title: 'Evening Optimization', impact: 'Medium', description: 'Shift posts to 7-9 PM for higher reach.' },
-    { type: 'Hashtag Strategy', title: 'Niche Communities', impact: 'High', description: 'Target industry-specific hashtags for better leads.' }
-  ];
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen bg-[#0B0F1A] text-[#E5E7EB] p-6">
@@ -96,19 +109,6 @@ const Dashboard = ({ onStrategyGenerated }) => {
           <div className="h-80"><Line data={performanceData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af' } } }, scales: { x: { grid: { color: '#1F2937' }, ticks: { color: '#9ca3af' } }, y: { grid: { color: '#1F2937' }, ticks: { color: '#9ca3af' } } } }} /></div>
         </motion.div>
 
-        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {aiRecommendations.map((rec, index) => (
-            <motion.div key={index} whileHover={{ scale: 1.02, y: -6 }} className="bg-[#111827] rounded-2xl p-6 shadow-xl border border-purple-500/20 hover:border-purple-500/40 hover:shadow-purple-500/10 transition-all">
-              <div className="flex items-center mb-4">
-                <Zap className="w-5 h-5 text-purple-400 mr-2" />
-                <span className="text-sm text-purple-400 font-semibold">{rec.type}</span>
-                <span className={`ml-auto px-2 py-1 rounded-full text-xs font-bold ${rec.impact === 'High' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'}`}>{rec.impact} Impact</span>
-              </div>
-              <h3 className="text-lg font-bold mb-2 text-[#E5E7EB]">{rec.title}</h3>
-              <p className="text-[#9CA3AF] text-sm">{rec.description}</p>
-            </motion.div>
-          ))}
-        </motion.div>
       </div>
       
       <Footer />

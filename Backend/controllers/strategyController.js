@@ -12,7 +12,7 @@ const { getOpenRouterGeneratedTrends } = require('../services/openRouterTrendsSe
 
 const generateIdeas = async (req, res) => {
   const { topic, type } = req.body;
-  if (!topic || !type) {
+  if (typeof topic !== 'string' || topic.trim().length < 1 || topic.length > 200 || typeof type !== 'string' || type.length > 50) {
     return res.status(400).json({ success: false, error: 'Please provide a topic and idea type.' });
   }
   try {
@@ -27,7 +27,7 @@ const generateIdeas = async (req, res) => {
 const generateStrategy = async (req, res) => {
   const { targetAudience, topic, goals, startDate, endDate } = req.body;
 
-  if (!targetAudience || !topic || !goals) {
+  if ([targetAudience, topic, goals].some(value => typeof value !== 'string' || value.trim().length < 1 || value.length > 2000)) {
     return res.status(400).json({ success: false, error: 'Please provide targetAudience, topic, and goals' });
   }
 
@@ -104,8 +104,23 @@ const updateCalendarItem = async (req, res) => {
   const { title, format, platform, postTime, status, rationale, day: newDay } = req.body;
   const originalDay = parseInt(originalDayStr);
 
+  if (!Number.isInteger(originalDay) || originalDay < 1 || originalDay > 90) {
+    return res.status(400).json({ success: false, error: 'Invalid calendar day.' });
+  }
+  if (newDay !== undefined && (!Number.isInteger(Number(newDay)) || Number(newDay) < 1 || Number(newDay) > 90)) {
+    return res.status(400).json({ success: false, error: 'Invalid destination day.' });
+  }
+  if (status !== undefined && !['To Do', 'In Progress', 'Completed'].includes(status)) {
+    return res.status(400).json({ success: false, error: 'Invalid calendar status.' });
+  }
+  for (const [field, value] of Object.entries({ title, format, platform, postTime, rationale })) {
+    if (value !== undefined && (typeof value !== 'string' || value.length > 2000)) {
+      return res.status(400).json({ success: false, error: `Invalid ${field}.` });
+    }
+  }
+
   try {
-    const strategy = await ContentStrategy.findById(strategyId);
+    const strategy = await ContentStrategy.findOne({ _id: strategyId, user: req.user.id });
     if (!strategy) {
       return res.status(404).json({ success: false, error: 'Strategy not found.' });
     }
@@ -118,18 +133,19 @@ const updateCalendarItem = async (req, res) => {
     }
 
     // --- START OF NEW, SAFER "MOVE AND OVERWRITE" LOGIC ---
-    if (newDay && newDay !== originalDay) {
+    if (newDay !== undefined && Number(newDay) !== originalDay) {
+      const destinationDay = Number(newDay);
       
       const newCalendar = [];
       // Iterate over the original calendar to build the new one safely
       for (const item of originalCalendar) {
         // If the current item is the one we are dropping ONTO (the target), SKIP it.
-        if (item.day === newDay) {
+        if (item.day === destinationDay) {
           continue; 
         }
         // If the current item is the one we are moving, update its day and add it.
         if (item.day === originalDay) {
-          newCalendar.push({ ...item.toObject(), day: newDay });
+          newCalendar.push({ ...item.toObject(), day: destinationDay });
         }
         // Otherwise, just add the item as is.
         else {
@@ -143,12 +159,12 @@ const updateCalendarItem = async (req, res) => {
     // Standard Update (editing details without moving)
     else {
       const itemToUpdate = originalCalendar.find(item => item.day === originalDay);
-      if (title) itemToUpdate.title = title;
-      if (format) itemToUpdate.format = format;
-      if (platform) itemToUpdate.platform = platform;
-      if (postTime) itemToUpdate.postTime = postTime;
-      if (status) itemToUpdate.status = status;
-      if (rationale) itemToUpdate.rationale = rationale;
+      if (title !== undefined) itemToUpdate.title = title;
+      if (format !== undefined) itemToUpdate.format = format;
+      if (platform !== undefined) itemToUpdate.platform = platform;
+      if (postTime !== undefined) itemToUpdate.postTime = postTime;
+      if (status !== undefined) itemToUpdate.status = status;
+      if (rationale !== undefined) itemToUpdate.rationale = rationale;
     }
 
     strategy.markModified('generatedPlan.calendar');
@@ -165,7 +181,7 @@ const updateCalendarItem = async (req, res) => {
 
 const generatePersona = async (req, res) => {
   const { audience } = req.body;
-  if (!audience) {
+  if (typeof audience !== 'string' || audience.trim().length < 1 || audience.length > 2000) {
     return res.status(400).json({ success: false, error: 'Please provide audience keywords.' });
   }
   try {

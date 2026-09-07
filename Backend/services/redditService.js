@@ -11,7 +11,7 @@ const searchRedditByTopic = async (topic) => {
   if (!topic) return [];
   
   const cacheKey = `reddit_trends_${topic.toLowerCase()}`;
-  const cachedData = cache.get(cacheKey);
+  const cachedData = await cache.get(cacheKey);
   if (cachedData) {
     console.log(`Serving Reddit trends for "${topic}" from cache.`);
     return cachedData;
@@ -44,7 +44,7 @@ const searchRedditByTopic = async (topic) => {
       industry: topic,
     }));
 
-    cache.set(cacheKey, trends);
+    await cache.set(cacheKey, trends);
     return trends;
   } catch (error) {
     const status = error.response ? error.response.status : error.message;

@@ -1,7 +1,7 @@
 const Parser = require('rss-parser');
 const cache = require('./cacheService');
 
-const parser = new Parser();
+const parser = new Parser({ timeout: 10000, maxRedirects: 3 });
 
 /**
  * Fetches the latest posts from a blog's RSS feed.
@@ -10,7 +10,7 @@ const parser = new Parser();
  */
 const getPostsFromRss = async (rssUrl) => {
   const cacheKey = `blog_competitor_${rssUrl}`;
-  const cachedData = cache.get(cacheKey);
+  const cachedData = await cache.get(cacheKey);
   if (cachedData) {
     console.log(`Serving competitor blog posts for "${rssUrl}" from cache.`);
     return cachedData;
@@ -34,7 +34,7 @@ const getPostsFromRss = async (rssUrl) => {
     }));
 
     const result = { blogRssUrl: rssUrl, name, recentPosts };
-    cache.set(cacheKey, result);
+    await cache.set(cacheKey, result);
     return result;
 
   } catch (error) {

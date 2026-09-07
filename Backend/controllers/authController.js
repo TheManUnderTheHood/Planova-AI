@@ -2,10 +2,11 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
 const register = async (req, res) => {
-  const { email, password } = req.body;
+  const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  const password = typeof req.body.password === 'string' ? req.body.password : '';
 
   // Basic validation
-  if (!email || !password) {
+  if (!email || !password || password.length < 6 || password.length > 128) {
     return res.status(400).json({ success: false, error: 'Please provide an email and password' });
   }
 
@@ -39,7 +40,8 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  const password = typeof req.body.password === 'string' ? req.body.password : '';
 
   if (!email || !password) {
     return res.status(400).json({ success: false, error: 'Please provide an email and password' });

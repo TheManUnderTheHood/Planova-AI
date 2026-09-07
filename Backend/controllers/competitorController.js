@@ -5,13 +5,22 @@ const { getChannelVideos } = require('../services/youtubeService');
 const { getTweetsByUsername } = require('../services/twitterCompetitorService');
 const { getPostsFromRss } = require('../services/blogCompetitorService');
 const { analyzeCompetitorTopics, findContentGaps } = require('../services/aiService');
+const { validateExternalUrl } = require('../services/urlValidation');
 // --- END OF FIX ---
 
 const addCompetitor = async (req, res) => {
   const { platform, handle } = req.body;
 
-  if (!platform || !handle) {
+  if (typeof platform !== 'string' || typeof handle !== 'string' || !handle.trim() || handle.length > 500) {
     return res.status(400).json({ success: false, error: 'Please provide platform and a handle/URL' });
+  }
+
+  if (platform === 'Blog') {
+    try {
+      await validateExternalUrl(handle.trim());
+    } catch (error) {
+      return res.status(400).json({ success: false, error: error.message });
+    }
   }
 
   try {

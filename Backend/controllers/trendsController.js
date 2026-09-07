@@ -7,22 +7,24 @@ const { analyzeTrendSentiment } = require('../services/aiService'); // <-- IMPOR
 const getTrends = async (req, res) => {
   const { topic } = req.query;
 
-  if (!topic) {
+  if (!topic || typeof topic !== 'string' || topic.trim().length < 1 || topic.length > 200) {
     return res.status(400).json({ success: false, error: 'Please provide a topic as a query parameter.' });
   }
 
+  const normalizedTopic = topic.trim();
+
   try {
     const [youtubeTrends, redditTrends, twitterTrends, openRouterTrends] = await Promise.all([
-      searchYouTubeByTopic(topic),
-      searchRedditByTopic(topic),
-      searchTwitterByTopic(topic),
-      getOpenRouterGeneratedTrends(topic),
+      searchYouTubeByTopic(normalizedTopic),
+      searchRedditByTopic(normalizedTopic),
+      searchTwitterByTopic(normalizedTopic),
+      getOpenRouterGeneratedTrends(normalizedTopic),
     ]);
 
     const allTrends = [...youtubeTrends, ...redditTrends, ...twitterTrends, ...openRouterTrends];
 
     if (allTrends.length === 0) {
-      return res.status(200).json({ success: true, count: 0, data: [], message: `Could not find any trends for the topic: "${topic}"` });
+      return res.status(200).json({ success: true, count: 0, data: [], message: `Could not find any trends for the topic: "${normalizedTopic}"` });
     }
 
     // --- NEW: Enhance trends with AI sentiment analysis ---

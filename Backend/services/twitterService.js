@@ -8,7 +8,7 @@ const searchTwitterByTopic = async (topic) => {
   if (!topic) return [];
 
   const cacheKey = `twitter_trends_${topic.toLowerCase()}`;
-  const cachedData = cache.get(cacheKey);
+  const cachedData = await cache.get(cacheKey);
   if (cachedData) {
     console.log(`Serving Twitter trends for "${topic}" from cache.`);
     return cachedData;
@@ -41,7 +41,7 @@ const searchTwitterByTopic = async (topic) => {
       industry: topic,
     }));
     
-    cache.set(cacheKey, trends);
+    await cache.set(cacheKey, trends);
     return trends;
 
   } catch (error) {

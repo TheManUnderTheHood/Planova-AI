@@ -11,7 +11,7 @@ const roClient = twitterClient.readOnly;
  */
 const getTweetsByUsername = async (username) => {
   const cacheKey = `twitter_competitor_${username.toLowerCase()}`;
-  const cachedData = cache.get(cacheKey);
+  const cachedData = await cache.get(cacheKey);
   if (cachedData) {
     console.log(`Serving competitor tweets for "${username}" from cache.`);
     return cachedData;
@@ -46,7 +46,7 @@ const getTweetsByUsername = async (username) => {
     }));
     
     const result = { twitterHandle: username, name, recentPosts };
-    cache.set(cacheKey, result);
+    await cache.set(cacheKey, result);
     return result;
 
   } catch (error) {

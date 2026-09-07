@@ -86,6 +86,9 @@ JWT_SECRET=your_super_secret_random_string_for_jwt
 
 # Server Port (Optional)
 PORT=5000
+
+# Redis connection URL (Optional; falls back to in-memory caching when absent)
+REDIS_URL=redis://localhost:6379
 ```
 
 #### **Running the Backend**
