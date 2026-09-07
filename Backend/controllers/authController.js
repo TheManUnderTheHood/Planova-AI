@@ -1,5 +1,8 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const { OAuth2Client } = require('google-auth-library');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const register = async (req, res) => {
   const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
@@ -65,6 +68,43 @@ const login = async (req, res) => {
   }
 };
 
+const googleLogin = async (req, res) => {
+  const { credential } = req.body;
+
+  if (!credential || !process.env.GOOGLE_CLIENT_ID) {
+    return res.status(400).json({ success: false, error: 'Google sign-in is not configured.' });
+  }
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload?.sub || !payload.email || !payload.email_verified) {
+      return res.status(401).json({ success: false, error: 'Google account could not be verified.' });
+    }
+
+    const email = payload.email.trim().toLowerCase();
+    let user = await User.findOne({ $or: [{ googleId: payload.sub }, { email }] });
+
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = payload.sub;
+        await user.save();
+      }
+    } else {
+      user = await User.create({ email, googleId: payload.sub });
+    }
+
+    sendTokenResponse(user, 200, res);
+  } catch (error) {
+    console.error('GOOGLE LOGIN ERROR:', error.message);
+    res.status(401).json({ success: false, error: 'Google sign-in failed.' });
+  }
+};
+
 const sendTokenResponse = (user, statusCode, res) => {
   const token = user.getSignedJwtToken();
   const userData = {
@@ -79,4 +119,4 @@ const sendTokenResponse = (user, statusCode, res) => {
   });
 };
 
-module.exports = { register, login };
+module.exports = { register, login, googleLogin };

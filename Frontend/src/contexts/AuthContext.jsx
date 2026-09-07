@@ -35,13 +35,21 @@ export const AuthProvider = ({ children }) => {
     setUser(user);
   };
 
+  const googleLogin = async (credential) => {
+    const res = await api.post('/api/auth/google', { credential });
+    const { user: signedInUser, token } = res.data;
+    localStorage.setItem('user_data', JSON.stringify({ user: signedInUser, token }));
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    setUser(signedInUser);
+  };
+
   const logout = () => {
     localStorage.removeItem('user_data');
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
   };
   
-  const value = { user, loading, login, signup, logout };
+  const value = { user, loading, login, signup, googleLogin, logout };
 
   return (
     <AuthContext.Provider value={value}>

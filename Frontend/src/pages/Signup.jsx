@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/useAuth';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, Lock, Mail, UserPlus } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
@@ -10,7 +11,7 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
+  const { signup, googleLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
@@ -29,6 +30,19 @@ const Signup = () => {
       setError(err.normalizedMessage || 'Failed to create account.');
     }
     setLoading(false);
+  };
+
+  const handleGoogleSuccess = async ({ credential }) => {
+    setError('');
+    setLoading(true);
+    try {
+      await googleLogin(credential);
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(err.normalizedMessage || 'Google sign-in failed.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -110,6 +124,8 @@ const Signup = () => {
             )}
           </motion.button>
         </form>
+        <div className="my-5 flex items-center gap-3 text-xs text-[#6B7280]"><span className="h-px flex-1 bg-[#374151]" />OR<span className="h-px flex-1 bg-[#374151]" /></div>
+        {import.meta.env.VITE_GOOGLE_CLIENT_ID ? <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError('Google sign-in failed.')} width="100%" /> : <p className="text-center text-xs text-[#6B7280]">Google sign-in is not configured.</p>}
         <p className="text-center text-[#9CA3AF] mt-6">
           Already have an account?{' '}
           <Link to="/login" className="text-purple-400 hover:text-purple-300 font-semibold transition-colors">Log In</Link>

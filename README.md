@@ -18,6 +18,7 @@ This tool moves beyond simple content generation by building a complete strategi
 *   **🔐 User Authentication**: JWT-based registration and login protect user strategies and competitor data with ownership checks.
 *   **⚡ Caching and Quota Reduction**: Uses Redis when configured, with an automatic in-memory fallback. External trend and competitor responses use a six-hour default cache.
 *   **🛡️ API Protection**: Includes authenticated AI/data routes, request-size limits, input validation, endpoint rate limiting, SSRF protection for RSS URLs, structured errors, and a health endpoint.
+*   **🌐 Google Sign-In**: Sign up or log in with Google through Google Identity Services, then use the same Planova JWT-protected workspace as password users.
 
 ## 🛠️ Technology Stack
 
@@ -38,6 +39,28 @@ To run this project locally, you will need to set up both the backend and fronte
 *   npm
 *   MongoDB Atlas Account or another MongoDB deployment
 *   Optional Redis Cloud account or Redis-compatible server
+
+### Google OAuth Setup
+
+Google sign-in uses a Web application OAuth client and Google Identity Services:
+
+1. Open the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create or select a project and configure the OAuth consent screen.
+3. Create an OAuth client under **APIs & Services > Credentials > Create Credentials > OAuth client ID**.
+4. Choose **Web application** and add these authorized JavaScript origins:
+	- `http://localhost:5173`
+	- Your deployed frontend origin, such as `https://app.example.com`
+5. Put the same client ID in both backend and frontend environment variables:
+
+```env
+# Backend/.env
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+
+# Frontend/.env
+VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+```
+
+The backend verifies the Google ID token, creates or links the user by verified email, and returns the application JWT. Google access tokens are not stored by Planova AI.
 
 ### 1. Backend Setup
 
@@ -83,6 +106,9 @@ YOUTUBE_API_KEY=YOUR_YOUTUBE_API_KEY
 
 # GetXAPI key for Twitter/X data
 GETXAPI_KEY=YOUR_GETXAPI_KEY
+
+# Google OAuth web client ID
+GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com
 
 # JSON Web Token Secret
 # This can be any long, random, and secret string.
@@ -134,6 +160,7 @@ Open the file and add the following line:
 
 ```env
 VITE_API_URL=http://localhost:5000
+VITE_GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com
 ```
 
 #### **Running the Frontend**
@@ -145,12 +172,14 @@ npm run dev
 
 Your browser should automatically open to `http://localhost:5173`, and the application will be running.
 
+The landing page explains the workflow with a creator example: enter an audience, topic, goal, and date range; collect signals from connected sources; and receive an editable content calendar with titles, formats, platforms, timing, status, and rationale.
+
 ## 📝 API Endpoints
 
 All strategy, competitor, trend, and AI endpoints require a JWT bearer token.
 
 *   **Health**: `GET /`, `GET /health`
-*   **Auth**: `POST /api/auth/register`, `POST /api/auth/login`
+*   **Auth**: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/google`
 *   **Strategies**: `GET /api/strategy`, `POST /api/strategy/generate`, `POST /api/strategy/generate-persona`, `GET /api/strategy/:id`, `DELETE /api/strategy/:id`
 *   **Calendar**: `PUT /api/strategy/:strategyId/calendar/:day`
 *   **Idea Bank**: `POST /api/strategy/generate-ideas`, `POST /api/strategy/expand-idea`
@@ -187,3 +216,15 @@ npm run build
 ```
 
 Redis is optional. If `REDIS_URL` is not configured or Redis is unavailable, the backend uses local memory caching and local rate-limit counters. For a multi-instance deployment, configure Redis so cache and rate limits are shared across instances.
+
+### Production Environment
+
+Set environment variables in the hosting provider rather than committing `.env` files. The backend needs `MONGO_URI`, `JWT_SECRET`, `OPENROUTER_API_KEY`, `YOUTUBE_API_KEY`, `GETXAPI_KEY`, and `GOOGLE_CLIENT_ID`. `REDIS_URL` is optional, but recommended when running more than one backend instance. The frontend needs `VITE_API_URL` and `VITE_GOOGLE_CLIENT_ID` at build time.
+
+After deployment, verify the backend at:
+
+```text
+https://your-backend-domain.com/health
+```
+
+The health response should report `database: "connected"`. Redis may report either a connected Redis cache or the documented local fallback.
