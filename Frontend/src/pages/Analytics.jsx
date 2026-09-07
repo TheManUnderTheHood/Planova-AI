@@ -53,8 +53,8 @@ const Analytics = () => {
   const platformBuckets = { 'YouTube': 0, 'Twitter': 0, 'Reddit': 0, 'Google Trends (AI)': 0 };
   const sentimentBuckets = { 'Positive': 0, 'Negative': 0, 'Neutral': 0 };
   trends.forEach((t) => {
-    if (platformBuckets.hasOwnProperty(t.platform)) platformBuckets[t.platform]++;
-    if (sentimentBuckets.hasOwnProperty(t.sentiment)) sentimentBuckets[t.sentiment]++;
+    if (Object.prototype.hasOwnProperty.call(platformBuckets, t.platform)) platformBuckets[t.platform]++;
+    if (Object.prototype.hasOwnProperty.call(sentimentBuckets, t.sentiment)) sentimentBuckets[t.sentiment]++;
   });
 
   const platformData = {

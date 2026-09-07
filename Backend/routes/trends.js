@@ -9,7 +9,6 @@ const rateLimit = require('../middleware/rateLimit');
 const trendsRateLimit = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, message: 'Trend request limit reached. Please try again later.' });
 
 // Route to get trends
-router.route('/').get(protect, getTrends);
 router.route('/').get(protect, trendsRateLimit, getTrends);
 
 module.exports = router;

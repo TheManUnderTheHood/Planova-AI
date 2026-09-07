@@ -19,7 +19,6 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.1",
-    "mongosh": "^2.5.8",
     "node-cache": "^5.1.2",
     "redis": "^5.0.0",
     "rss-parser": "^3.13.0",

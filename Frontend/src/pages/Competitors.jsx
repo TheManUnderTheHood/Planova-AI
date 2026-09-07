@@ -70,13 +70,17 @@ const Competitors = () => {
   const getCompetitorLinkAndHandle = (c) => {
     switch (c.platform) {
       case 'YouTube':
-        const channelId = c.youtubeChannelId || c.handle;
-        return { href: `https://www.youtube.com/channel/${channelId}`, text: 'View Channel' };
+        {
+          const channelId = c.youtubeChannelId || c.handle;
+          return { href: `https://www.youtube.com/channel/${channelId}`, text: 'View Channel' };
+        }
       case 'Twitter':
         return { href: `https://twitter.com/${c.twitterHandle}`, text: `@${c.twitterHandle}` };
       case 'Blog':
-        const blogUrl = new URL(c.blogRssUrl);
-        return { href: blogUrl.origin, text: 'Visit Blog' };
+        {
+          const blogUrl = new URL(c.blogRssUrl);
+          return { href: blogUrl.origin, text: 'Visit Blog' };
+        }
       default:
         return { href: '#', text: 'Unknown' };
     }

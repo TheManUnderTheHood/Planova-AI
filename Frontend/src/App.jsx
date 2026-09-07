@@ -11,7 +11,8 @@ import IdeaBank from './pages/IdeaBank';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { useAuth } from './contexts/useAuth';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // --- NEW: Import Toaster for notifications ---

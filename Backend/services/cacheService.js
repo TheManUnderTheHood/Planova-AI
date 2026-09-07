@@ -53,4 +53,31 @@ const set = async (key, value, ttlSeconds = DEFAULT_TTL_SECONDS) => {
 	}
 };
 
-module.exports = { get, set };
+const increment = async (key, windowSeconds) => {
+	if (redisClient?.isReady) {
+		try {
+			const count = await redisClient.incr(key);
+			if (count === 1) await redisClient.expire(key, windowSeconds);
+			return count;
+		} catch (error) {
+			console.error('Redis increment failed:', error.message);
+		}
+	}
+
+	const current = localCache.get(key) || 0;
+	const next = current + 1;
+	localCache.set(key, next, windowSeconds);
+	return next;
+};
+
+const getStatus = () => ({
+	configured: Boolean(redisUrl),
+	connected: Boolean(redisClient?.isReady),
+	usingLocalFallback: !redisClient?.isReady,
+});
+
+const close = async () => {
+	if (redisClient?.isOpen) await redisClient.quit();
+};
+
+module.exports = { get, set, increment, getStatus, close };

@@ -246,7 +246,7 @@ const CalendarPage = () => {
     const commitChange = async () => {
       try {
         await api.put(`/api/strategy/${strategyId}/calendar/${draggedItem.day}`, { day: newDayNumber });
-      } catch (err) {
+      } catch {
         setError('Failed to save the change. Reverting.');
         setStrategy(previousStrategy); 
       } finally {

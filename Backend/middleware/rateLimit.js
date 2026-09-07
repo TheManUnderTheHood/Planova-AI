@@ -1,20 +1,13 @@
-const windows = new Map();
+const cache = require('../services/cacheService');
 
-const rateLimit = ({ windowMs, max, message }) => (req, res, next) => {
-  const key = `${req.ip}:${req.baseUrl}${req.path}`;
-  const now = Date.now();
-  const current = windows.get(key);
+const rateLimit = ({ windowMs, max, message }) => async (req, res, next) => {
+  const key = `rate-limit:${req.ip}:${req.baseUrl}${req.path}`;
+  const count = await cache.increment(key, Math.ceil(windowMs / 1000));
 
-  if (!current || now >= current.resetAt) {
-    windows.set(key, { count: 1, resetAt: now + windowMs });
-    return next();
-  }
-
-  if (current.count >= max) {
+  if (count > max) {
     return res.status(429).json({ success: false, error: message });
   }
 
-  current.count += 1;
   return next();
 };
 
