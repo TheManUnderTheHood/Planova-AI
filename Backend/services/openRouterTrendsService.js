@@ -45,6 +45,7 @@ const getOpenRouterGeneratedTrends = async (topic) => {
     return trends;
   } catch (error) {
     console.error('Error generating trends with OpenRouter:', error.message);
+    await cache.set(cacheKey, [], 900);
     return [];
   }
 };

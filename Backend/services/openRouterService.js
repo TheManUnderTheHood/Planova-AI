@@ -24,6 +24,17 @@ const getHeaders = () => {
   };
 };
 
+const createOpenRouterError = error => {
+  const status = error.response?.status;
+  if (status === 402) {
+    const detail = error.response?.data?.error?.message || error.response?.data?.message;
+    return new Error(`OpenRouter payment required. Add credits or enable access to ${DEFAULT_MODEL}${detail ? `: ${detail}` : '.'}`);
+  }
+
+  const message = error.response?.data?.error?.message || error.message;
+  return new Error(`OpenRouter request failed${status ? ` (${status})` : ''}: ${message}`);
+};
+
 const generateText = async (prompt, options = {}) => {
   const {
     model = DEFAULT_MODEL,
@@ -31,18 +42,22 @@ const generateText = async (prompt, options = {}) => {
     maxTokens = 3000,
   } = options;
 
-  const response = await axios.post(
-    OPENROUTER_URL,
-    {
-      model,
-      messages: [{ role: 'user', content: prompt }],
-      temperature,
-      max_tokens: maxTokens,
-    },
-    { headers: getHeaders() }
-  );
+  try {
+    const response = await axios.post(
+      OPENROUTER_URL,
+      {
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature,
+        max_tokens: maxTokens,
+      },
+      { headers: getHeaders() }
+    );
 
-  return response.data?.choices?.[0]?.message?.content?.trim() || '';
+    return response.data?.choices?.[0]?.message?.content?.trim() || '';
+  } catch (error) {
+    throw createOpenRouterError(error);
+  }
 };
 
 const generateJson = async (prompt, options = {}) => {
