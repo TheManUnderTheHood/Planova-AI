@@ -74,11 +74,8 @@ OPENROUTER_MODEL=anthropic/claude-opus-4.6
 # 4. Create credentials for an "API Key" and copy it here.
 YOUTUBE_API_KEY=YOUR_YOUTUBE_API_KEY
 
-# Twitter (X) API Bearer Token
-# 1. Apply for a developer account at https://developer.twitter.com/
-# 2. Create a new Project and a new App.
-# 3. In your App's "Keys and tokens" section, generate and copy the "Bearer Token".
-TWITTER_BEARER_TOKEN=YOUR_TWITTER_BEARER_TOKEN
+# GetXAPI key for Twitter/X data
+GETXAPI_KEY=YOUR_GETXAPI_KEY
 
 # JSON Web Token Secret
 # This can be any long, random, and secret string.

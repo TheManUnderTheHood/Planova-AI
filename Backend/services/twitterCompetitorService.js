@@ -1,8 +1,5 @@
-const { TwitterApi } = require('twitter-api-v2');
 const cache = require('./cacheService');
-
-const twitterClient = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
-const roClient = twitterClient.readOnly;
+const { getTweetDate, getTweetId, getTweetText, getUserInfo, getUserTweets } = require('./getxapiService');
 
 /**
  * Fetches the latest tweets from a specific Twitter user.
@@ -18,34 +15,26 @@ const getTweetsByUsername = async (username) => {
   }
   
   try {
-    // Step 1: Get the user's ID from their username
-    const user = await roClient.v2.userByUsername(username);
-    if (!user.data) {
+    const normalizedUsername = username.replace(/^@/, '');
+    const user = await getUserInfo(normalizedUsername);
+    if (!user || (!user.userName && !user.username && !user.name && !user.displayName)) {
       throw new Error(`Twitter user not found: ${username}`);
     }
-    const userId = user.data.id;
-    const name = user.data.name;
+    const name = user.name || user.displayName || user.userName || user.username || normalizedUsername;
 
-    // Step 2: Fetch the user's recent tweets using their ID
-    const tweets = await roClient.v2.userTimeline(userId, {
-      'max_results': 10,
-      'exclude': ['replies', 'retweets'],
-      'tweet.fields': ['created_at'],
-    });
+    const tweets = await getUserTweets(normalizedUsername);
 
-    if (!tweets.data.data) {
-      return { twitterHandle: username, name, recentPosts: [] };
-    }
+    const recentPosts = tweets.slice(0, 10)
+      .filter(tweet => getTweetId(tweet) && getTweetText(tweet))
+      .map(tweet => ({
+        postId: getTweetId(tweet),
+        title: getTweetText(tweet),
+        link: `https://twitter.com/${normalizedUsername}/status/${getTweetId(tweet)}`,
+        publishedAt: new Date(getTweetDate(tweet) || Date.now()),
+        format: 'Tweet',
+      }));
 
-    const recentPosts = tweets.data.data.map(tweet => ({
-      postId: tweet.id,
-      title: tweet.text,
-      link: `https://twitter.com/${username}/status/${tweet.id}`,
-      publishedAt: new Date(tweet.created_at),
-      format: 'Tweet',
-    }));
-    
-    const result = { twitterHandle: username, name, recentPosts };
+    const result = { twitterHandle: normalizedUsername, name, recentPosts };
     await cache.set(cacheKey, result);
     return result;
 

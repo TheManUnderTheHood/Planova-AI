@@ -1,8 +1,5 @@
-const { TwitterApi } = require('twitter-api-v2');
 const cache = require('./cacheService');
-
-const twitterClient = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
-const roClient = twitterClient.readOnly;
+const { getTweetId, getTweetText, getUsername, searchTweets } = require('./getxapiService');
 
 const searchTwitterByTopic = async (topic) => {
   if (!topic) return [];
@@ -16,27 +13,10 @@ const searchTwitterByTopic = async (topic) => {
 
   console.log(`Fetching new Twitter trends for "${topic}" from API.`);
   try {
-    const response = await roClient.v2.search(`${topic} -is:retweet lang:en`, {
-      'max_results': 10,
-      'sort_order': 'relevancy',
-      // We need the author's username to build the link
-      'expansions': 'author_id',
-      'user.fields': 'username',
-    });
-
-    if (!response.data || !response.data.data) return [];
-    
-    const users = response.data.includes?.users || [];
-    const userMap = users.reduce((acc, user) => {
-      acc[user.id] = user.username;
-      return acc;
-    }, {});
-
-    // --- UPDATED: Capture the link ---
-    const trends = response.data.data.map(tweet => ({
-      keyword: tweet.text,
-      // Construct the tweet URL
-      link: `https://twitter.com/${userMap[tweet.author_id]}/status/${tweet.id}`,
+    const tweets = await searchTweets(topic);
+    const trends = tweets.slice(0, 10).filter(tweet => getTweetId(tweet) && getTweetText(tweet)).map(tweet => ({
+      keyword: getTweetText(tweet),
+      link: `https://twitter.com/${getUsername(tweet, 'i')}/status/${getTweetId(tweet)}`,
       platform: 'Twitter',
       industry: topic,
     }));
