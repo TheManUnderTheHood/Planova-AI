@@ -9,9 +9,6 @@ const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 dotenv.config();
 const cache = require('./services/cacheService');
 
-// Connect to MongoDB
-connectDB();
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
