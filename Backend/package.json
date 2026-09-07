@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "check": "find . -path './node_modules' -prune -o -type f -name '*.js' -print0 | xargs -0 -n1 node --check"
   },
   "keywords": [],
   "author": "",

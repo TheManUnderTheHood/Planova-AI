@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
 // Load environment variables
 dotenv.config();
@@ -39,6 +40,9 @@ app.use('/api/trends', trends);
 app.use('/api/strategy', strategy);
 app.use('/api/competitors', competitors);
 app.use('/api/auth', auth);
+
+app.use(notFound);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
